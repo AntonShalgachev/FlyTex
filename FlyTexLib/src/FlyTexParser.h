@@ -75,12 +75,15 @@ bool RemoveDirectoryRecursive(const std::string& dirPath);
 class FlyTexParser
 {
 public:
-	FlyTexParser(const std::string& templateFile, const std::string& latexPath = "latex", const std::string& dvipngPath = "dvipng");
+	FlyTexParser();
 	~FlyTexParser();
 
+	void SetTemplateFile(const std::string& path);
+	void SetExecutablesPath(const std::string& latexPath, const std::string& dvipngPath);
+
 	void SetResolution(int res);
-	void SetBackgroundColor(std::string color);
-	void SetForegroundColor(std::string color);
+	void SetBackgroundColor(const std::string& color);
+	void SetForegroundColor(const std::string& color);
 
 	bool IsLatexInstalled() const;
 

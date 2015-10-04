@@ -2,7 +2,8 @@
 
 int main()
 {
-	FlyTexParser parser(TEMPLATE_NAME);
+	FlyTexParser parser;
+	parser.SetTemplateFile(TEMPLATE_NAME);
 	parser.SetResolution(RESOLUTION);
 	//parser.SetBackgroundColor("Transparent");
 	//parser.SetForegroundColor("Black");
