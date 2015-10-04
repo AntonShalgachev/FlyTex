@@ -124,11 +124,10 @@ bool RemoveDirectoryRecursive(const std::string& dirPath)
 	return (ret == 0) && (fileOp.fAnyOperationsAborted == FALSE);
 }
 
-FlyTexParser::FlyTexParser(const std::string& templateFile, const std::string& latexPath, const std::string& dvipngPath)
+FlyTexParser::FlyTexParser()
 {
-	this->templateFile = templateFile;
-	this->latexPath = '"' + latexPath + '"';
-	this->dvipngPath = '"' + dvipngPath + '"';
+	SetTemplateFile("");
+	SetExecutablesPath("latex", "dvipng");
 
 	SetResolution(DEFAULT_RESOLUTION);
 	SetBackgroundColor(DEFAULT_BACKGROUND_COLOR);
@@ -143,6 +142,17 @@ FlyTexParser::FlyTexParser(const std::string& templateFile, const std::string& l
 	Gdiplus::GdiplusStartup(&gdiToken, &gdiInput, NULL);
 }
 
+void FlyTexParser::SetTemplateFile(const std::string& path)
+{
+	this->templateFile = path;
+}
+
+void FlyTexParser::SetExecutablesPath(const std::string& latexPath, const std::string& dvipngPath)
+{
+	this->latexPath = '"' + latexPath + '"';
+	this->dvipngPath = '"' + dvipngPath + '"';
+}
+
 FlyTexParser::~FlyTexParser()
 {
 	Gdiplus::GdiplusShutdown(gdiToken);
@@ -153,12 +163,12 @@ void FlyTexParser::SetResolution(int res)
 	this->resolution = res;
 }
 
-void FlyTexParser::SetBackgroundColor(std::string color)
+void FlyTexParser::SetBackgroundColor(const std::string& color)
 {
 	backgroundColor = color;
 }
 
-void FlyTexParser::SetForegroundColor(std::string color)
+void FlyTexParser::SetForegroundColor(const std::string& color)
 {
 	foregroundColor = color;
 }
