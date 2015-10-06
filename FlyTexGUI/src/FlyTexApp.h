@@ -8,7 +8,7 @@
 
 #include <map>
 #include <sstream>
-#include <thread>
+#include <future>
 
 #pragma comment(lib, "ComCtl32.lib")
 
@@ -26,8 +26,19 @@
 #pragma comment(lib, "../Release/FlyTexLib.lib")
 #endif
 
-#define FLYTEX_APP_NAME TEXT("FlyTex")
-#define FLYTEX_TITLE TEXT("FlyTex")
+#define FLYTEX_TIMER_COMPILE 1
+#define FLYTEX_TIMER_CHECK_FUTURE 2
+
+#define FLYTEX_STATUS_READY L"Ready"
+#define FLYTEX_STATUS_COPIED L"Copied to clipboard"
+#define FLYTEX_STATUS_COMPILING L"Parsing..."
+#define FLYTEX_STATUS_ERROR L"Error "
+
+#define FLYTEX_COMPILE_DELAY 500
+#define FLYTEX_FUTURE_CHECK_DELAY USER_TIMER_MINIMUM
+
+#define FLYTEX_DEFAULT_TEMPLATE_FILE "template.tex"
+#define FLYTEX_DEFAULT_BACKGROUND "Transparent"
 
 class FlyTexApp
 {
@@ -37,7 +48,8 @@ public:
 	void Show(int cmdShow) const;
 	WPARAM Run() const;
 
-	void UpdateStatus(LPCTSTR status) const;
+	void UpdateStatus(LPCWSTR status, const std::wstring& detailStr = L"") const;
+	void UpdatePreview() const;
 
 private:
 	bool Init();
@@ -53,6 +65,9 @@ private:
 	HWND hEdit;
 	HWND hPreview;
 	HWND hStatus;
+
+	FlyTexParser parser;
+	std::future<Error> parserFuture;
 
 	static std::map<HWND, FlyTexApp*> procMap;
 };

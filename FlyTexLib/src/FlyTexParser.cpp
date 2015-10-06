@@ -197,7 +197,7 @@ Error FlyTexParser::ParseToImage(const std::string& expression, const std::strin
 
 	MakeFileFromTemplate(templateFile, texFilePath, "%::", expression);
 
-	DWORD latexExitCode = ExecuteCommand(latexPath + ' ' + texFilePath + " -quiet -output-directory=" + TMP_FOLDER + " >" + latexStdout + " 2>" + latexStderr);
+	DWORD latexExitCode = ExecuteCommand(latexPath + ' ' + texFilePath + " -interaction=nonstopmode -halt-on-error -output-directory=" + TMP_FOLDER + " >" + latexStdout + " 2>" + latexStderr);
 
 	CopyFileW(Utf8ToUtf16(latexLogFrom).c_str(), Utf8ToUtf16(latexLogTo).c_str(), FALSE);
 
