@@ -77,11 +77,48 @@ void FlyTexApp::UpdatePreview() const
 		if(OpenClipboard(hWnd))
 		{
 			HBITMAP hBmp = (HBITMAP)GetClipboardData(CF_BITMAP);
-			CloseClipboard();
 			HBITMAP hBmpCopy = (HBITMAP)CopyImage(hBmp, IMAGE_BITMAP, 0, 0, 0);
-			LRESULT res = SendMessage(hPreview, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBmpCopy);
-
 			CloseClipboard();
+
+			RECT previewRc;
+			GetWindowRect(hPreview, &previewRc);
+			LONG wndWidth = previewRc.right - previewRc.left;
+			LONG wndHeight = previewRc.bottom - previewRc.top;
+
+			BITMAP bmp;
+			GetObject(hBmpCopy, sizeof(BITMAP), &bmp);
+			LONG imgWidth = bmp.bmWidth;
+			LONG imgHeight = bmp.bmHeight;
+
+			LONG newImgWidth;
+			LONG newImgHeight;
+
+			if(imgWidth > wndWidth || imgHeight > wndHeight)
+			{
+				double aspect = (double)imgWidth / (double)imgHeight;
+
+				if(imgWidth > imgHeight)
+				{
+					newImgWidth = wndWidth;
+					newImgHeight = static_cast<LONG>(newImgWidth / aspect);
+				}
+				else
+				{
+					newImgHeight = wndHeight;
+					newImgWidth = static_cast<LONG>(newImgHeight * aspect);
+				}
+			}
+			else
+			{
+				newImgWidth = imgWidth;
+				newImgHeight = imgHeight;
+			}
+			HBITMAP hBmpScaled = (HBITMAP)CopyImage(hBmpCopy, IMAGE_BITMAP, newImgWidth, newImgHeight, 0);
+
+			SendMessage(hPreview, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBmpScaled);
+
+			DeleteObject(hBmpScaled);
+			DeleteObject(hBmpCopy);
 
 			return;
 		}
