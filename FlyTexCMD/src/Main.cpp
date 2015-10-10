@@ -23,6 +23,8 @@ int main()
 	else
 	{
 		std::cout << "Failed to parse! Error: " << ErrorString(error) << std::endl;
+		std::cin.sync();
+		std::getchar();
 	}
 
 	//std::system("pause");
