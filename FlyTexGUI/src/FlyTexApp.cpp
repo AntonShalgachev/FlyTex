@@ -150,14 +150,23 @@ void FlyTexApp::LoadSettings()
 	if(f.is_open())
 	{
 		std::string resolutionStr;
+		std::string debugModeStr;
 		std::getline(f, settings.background);
 		std::getline(f, settings.foreground);
 		std::getline(f, resolutionStr);
 		std::getline(f, settings.templatePath);
+		std::getline(f, debugModeStr);
 
 		std::stringstream ss;
+
 		ss << resolutionStr;
 		ss >> settings.resolution;
+
+		ss.str("");
+		ss.clear();
+
+		ss << debugModeStr;
+		ss >> settings.debugMode;
 
 		f.close();
 	}
@@ -167,23 +176,21 @@ void FlyTexApp::LoadSettings()
 		settings.foreground = FLYTEX_DEFAULT_FOREGROUND;
 		settings.resolution = FLYTEX_DEFAULT_RESOLUTION;
 		settings.templatePath = "";
+		settings.debugMode = false;
 
 		SaveSettings();
 	}
 }
 
 void FlyTexApp::SaveSettings()
-{	
-	//BOOL res = WritePrivateProfileStringW(FLYTEX_APPNAME, FLYTEX_SETTINGS_BACKGROUND, Utf8ToUtf16(settings.background).c_str(), FLYTEX_SETTINGS_FILE);
-	//res = WritePrivateProfileStringW(FLYTEX_APPNAME, FLYTEX_SETTINGS_FOREGROUND, Utf8ToUtf16(settings.foreground).c_str(), FLYTEX_SETTINGS_FILE);
-
-	//res = WritePrivateProfileStruct(FLYTEX_APPNAME, FLYTEX_SETTINGS, &settings, sizeof(settings), FLYTEX_SETTINGS_FILE);
+{
 	std::ofstream f(FLYTEX_SETTINGS_FILE);
 
 	f << settings.background << std::endl;
 	f << settings.foreground << std::endl;
 	f << settings.resolution << std::endl;
 	f << settings.templatePath << std::endl;
+	f << settings.debugMode << std::endl;
 
 	f.close();
 }
@@ -334,11 +341,11 @@ INT_PTR CALLBACK FlyTexApp::DlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 
 				if(parsingToFile)
 				{
-					parserFuture = std::async(std::launch::async, &FlyTexParser::ParseToImage, &parser, expressionStr, outFile, true);
+					parserFuture = std::async(std::launch::async, &FlyTexParser::ParseToImage, &parser, expressionStr, outFile, !settings.debugMode);
 				}
 				else
 				{
-					parserFuture = std::async(std::launch::async, &FlyTexParser::ParseToClipboard, &parser, expressionStr, true);
+					parserFuture = std::async(std::launch::async, &FlyTexParser::ParseToClipboard, &parser, expressionStr, !settings.debugMode);
 				}
 				waitingForFuture = true;
 				SetTimer(hWnd, FLYTEX_TIMER_CHECK_FUTURE, FLYTEX_FUTURE_CHECK_DELAY, NULL);
@@ -393,6 +400,7 @@ INT_PTR CALLBACK FlyTexApp::SettingsProc(HWND hWnd, UINT msg, WPARAM wParam, LPA
 	HWND hFore = GetDlgItem(hWnd, IDC_FORECOLOR);
 	HWND hRes = GetDlgItem(hWnd, IDC_RESOLUTION);
 	HWND hTemplate = GetDlgItem(hWnd, IDC_TEMPLATE);
+	HWND hDebugging = GetDlgItem(hWnd, IDC_DEBUGGING);
 	std::wstringstream ss;
 
 	switch(msg)
@@ -404,6 +412,8 @@ INT_PTR CALLBACK FlyTexApp::SettingsProc(HWND hWnd, UINT msg, WPARAM wParam, LPA
 		SetWindowTextW(hTemplate, Utf8ToUtf16(settings->templatePath).c_str());
 		ss << settings->resolution;
 		SetWindowTextW(hRes, ss.str().c_str());
+
+		SendMessage(hDebugging, BM_SETCHECK, settings->debugMode ? BST_CHECKED : BST_UNCHECKED, 0);
 		break;
 	case WM_DESTROY:
 		EndDialog(hWnd, 0);
@@ -470,12 +480,15 @@ INT_PTR CALLBACK FlyTexApp::SettingsProc(HWND hWnd, UINT msg, WPARAM wParam, LPA
 			ss << resolutionStr;
 			ss >> res;
 
-			settings->background = Utf16ToUtf8(backColorStr);
-			settings->foreground = Utf16ToUtf8(foreColorStr);
-			settings->templatePath = Utf16ToUtf8(templateFileStr);
+			LRESULT checkState = SendMessage(hDebugging, BM_GETCHECK, 0, 0);
+
 			if(res > 0)
 			{
+				settings->background = Utf16ToUtf8(backColorStr);
+				settings->foreground = Utf16ToUtf8(foreColorStr);
+				settings->templatePath = Utf16ToUtf8(templateFileStr);
 				settings->resolution = res;
+				settings->debugMode = (checkState == BST_CHECKED);
 				SendMessage(hWnd, WM_CLOSE, 0, 0);
 			}
 			else

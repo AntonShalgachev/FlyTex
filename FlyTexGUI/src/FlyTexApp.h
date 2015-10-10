@@ -53,6 +53,7 @@ struct FlyTexSettings
 	std::string foreground;
 	int resolution;
 	std::string templatePath;
+	bool debugMode;
 };
 
 class FlyTexApp

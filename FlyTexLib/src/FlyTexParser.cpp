@@ -20,7 +20,8 @@ DWORD ExecuteCommand(const std::string& command, bool showConsole)
 	GetSystemDirectoryW(sysFolder, MAX_STR_LENGTH);
 	StringCchPrintfW(cmdPath, MAX_STR_LENGTH, TEXT("%s\\cmd.exe"), sysFolder);
 
-	std::wstring cmdArgs = L"/C " + Utf8ToUtf16(command);
+	std::wstring cmdArgs = L"/C \"" + Utf8ToUtf16(command) + L'"';
+	//std::wstring cmdArgs = L"/C " + Utf8ToUtf16(command);
 
 	//std::string arguments = "/C " + command;
 	//tstring cmdArgs = CStrToTStr(arguments.c_str());
@@ -244,7 +245,7 @@ Error FlyTexParser::ParseToImage(const std::string& expression, const std::strin
 			throw flytex_exception(ERROR_LATEX_PARSE);
 		}
 
-		DWORD dvipngExitCode = ExecuteCommand(dvipngPath + " -D " + std::to_string(resolution) + " -o " + imageFile + " -bg " + backgroundColor + " -fg " + foregroundColor + ' ' + dviFilePath + " >" + dvipngStdout + " 2>" + dvipngStderr);
+		DWORD dvipngExitCode = ExecuteCommand(dvipngPath + " -D " + std::to_string(resolution) + " -o " + '"' + imageFile + '"' + " -bg " + backgroundColor + " -fg " + foregroundColor + ' ' + dviFilePath + " >" + dvipngStdout + " 2>" + dvipngStderr);
 
 		if(dvipngExitCode != 0)
 			throw flytex_exception(ERROR_DVIPNG);
