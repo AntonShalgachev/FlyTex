@@ -47,6 +47,8 @@
 
 #define FLYTEX_SETTINGS_FILE L"FlyTex.cfg"
 
+void ReplaceAll(std::wstring& str, const std::wstring& from, const std::wstring& to);
+
 struct FlyTexSettings
 {
 	std::string background;

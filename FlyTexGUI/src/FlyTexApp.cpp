@@ -1,5 +1,14 @@
 #include "FlyTexApp.h"
 
+void ReplaceAll(std::wstring& str, const std::wstring& from, const std::wstring& to)
+{
+	size_t pos = 0;
+	while((pos = str.find(from, pos)) != std::string::npos) {
+		str.replace(pos, from.length(), to);
+		pos += to.length();
+	}
+}
+
 std::map<HWND, FlyTexApp*> FlyTexApp::procMap;
 
 FlyTexApp::FlyTexApp(HINSTANCE hInst) : hInst(hInst), hWnd(NULL)
@@ -274,8 +283,6 @@ INT_PTR CALLBACK FlyTexApp::DlgProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LP
 INT_PTR CALLBACK FlyTexApp::DlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	int expLen;
-	WCHAR* expression;
-	std::string expressionStr;
 	switch(msg)
 	{
 	case WM_CLOSE:
@@ -364,11 +371,14 @@ INT_PTR CALLBACK FlyTexApp::DlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			expLen = GetWindowTextLengthW(hEdit);
 			if(expLen > 0)
 			{
-				expression = new WCHAR[expLen + 1];
+				WCHAR* expression = new WCHAR[expLen + 1];
 				expression[expLen] = 0;
 				GetWindowTextW(hEdit, expression, expLen + 1);
 
-				expressionStr = Utf16ToUtf8(std::wstring(expression));
+				std::wstring expressionWStr = std::wstring(expression);
+				ReplaceAll(expressionWStr, L"\r\n", L"\n");
+
+				std::string expressionStr = Utf16ToUtf8(expressionWStr);
 
 				UpdateStatus(FLYTEX_STATUS_COMPILING);
 
