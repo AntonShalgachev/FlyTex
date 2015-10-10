@@ -288,7 +288,7 @@ Error FlyTexParser::ParseToClipboard(const std::string& expression, bool deleteT
 
 	if(OpenClipboard(NULL))
 	{
-		EmptyClipboard();
+		//EmptyClipboard();
 		HANDLE ret = SetClipboardData(CF_BITMAP, hClipBmp);
 		CloseClipboard();
 

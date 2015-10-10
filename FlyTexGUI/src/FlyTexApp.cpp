@@ -217,6 +217,39 @@ void FlyTexApp::UpdateTemplateStatus()
 	}
 }
 
+void FlyTexApp::CleanupClipboard() const
+{
+	if(OpenClipboard(hWnd))
+	{
+		HBITMAP hBmp = NULL;
+		if(IsClipboardFormatAvailable(CF_BITMAP))
+		{
+			HBITMAP hBmpTmp = (HBITMAP)GetClipboardData(CF_BITMAP);
+			hBmp = (HBITMAP)CopyImage(hBmpTmp, IMAGE_BITMAP, 0, 0, 0);
+		}
+
+		EmptyClipboard();
+
+		if(hBmp)
+		{
+			SetClipboardData(CF_BITMAP, hBmp);
+		}
+
+		//UINT format = 0;
+		//do
+		//{
+		//	format = EnumClipboardFormats(format);
+		//	if(format != CF_BITMAP)
+		//	{
+		//		SetClipboardData(format, NULL);
+		//	}
+		//}
+		//while(format != 0);
+
+		CloseClipboard();
+	}
+}
+
 INT_PTR CALLBACK FlyTexApp::DlgProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if(msg == WM_INITDIALOG)
@@ -387,6 +420,11 @@ INT_PTR CALLBACK FlyTexApp::DlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			return TRUE;
 			break;
 		}
+		break;
+
+	case WM_ACTIVATE:
+		if(wParam == WA_INACTIVE)
+				CleanupClipboard();
 		break;
 	}
 

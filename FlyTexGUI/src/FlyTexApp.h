@@ -73,6 +73,8 @@ public:
 
 	void UpdateTemplateStatus();
 
+	void CleanupClipboard() const;
+
 private:
 	bool Init();
 
