@@ -338,7 +338,7 @@ INT_PTR CALLBACK FlyTexApp::DlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				}
 				else
 				{
-					parserFuture = std::async(std::launch::async, &FlyTexParser::ParseToClipboard, &parser, expressionStr);
+					parserFuture = std::async(std::launch::async, &FlyTexParser::ParseToClipboard, &parser, expressionStr, true);
 				}
 				waitingForFuture = true;
 				SetTimer(hWnd, FLYTEX_TIMER_CHECK_FUTURE, FLYTEX_FUTURE_CHECK_DELAY, NULL);

@@ -104,7 +104,9 @@ public:
 	bool IsLatexInstalled() const;
 
 	Error ParseToImage(const std::string& expression, const std::string& imageFile, bool deleteTemp = true) const;
-	Error ParseToClipboard(const std::string& expression) const;
+	Error ParseToClipboard(const std::string& expression, bool deleteTemp = true) const;
+
+	static bool Cleanup(bool act = true);
 
 private:
 	std::string templateFile;

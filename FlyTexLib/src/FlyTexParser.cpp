@@ -261,13 +261,16 @@ Error FlyTexParser::ParseToImage(const std::string& expression, const std::strin
 	return error;
 }
 
-Error FlyTexParser::ParseToClipboard(const std::string& expression) const
+Error FlyTexParser::ParseToClipboard(const std::string& expression, bool deleteTemp) const
 {
 	std::string tmpPngFile = MakeFullPath(TMP_FOLDER, TMP_FILENAME, "png");
 
 	Error res = ParseToImage(expression, tmpPngFile, false);
 	if(res != ERROR_OK)
+	{
+		Cleanup(deleteTemp);
 		return res;
+	}
 
 	Gdiplus::Bitmap* png = new Gdiplus::Bitmap(Utf8ToUtf16(tmpPngFile).c_str());
 
@@ -278,8 +281,9 @@ Error FlyTexParser::ParseToClipboard(const std::string& expression) const
 	delete png;
 	png = nullptr;
 
-	if(!RemoveDirectoryRecursive(TMP_FOLDER))
-		return ERROR_REMOVE_TEMP;
+	if(deleteTemp)
+		if(!Cleanup())
+			return ERROR_REMOVE_TEMP;
 
 	if(OpenClipboard(NULL))
 	{
@@ -293,4 +297,12 @@ Error FlyTexParser::ParseToClipboard(const std::string& expression) const
 	{
 		return ERROR_CLIPBOARD_OPEN;
 	}
+}
+
+bool FlyTexParser::Cleanup(bool act)
+{
+	if(act)
+		return RemoveDirectoryRecursive(TMP_FOLDER);
+
+	return true;
 }
