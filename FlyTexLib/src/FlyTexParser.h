@@ -26,9 +26,13 @@ enum Error
 	ERROR_OK,
 	ERROR_LATEX_PARSE,
 	ERROR_DVIPNG,
+	ERROR_CREATE_TEMP,
+	ERROR_CREATE_LOG,
 	ERROR_REMOVE_TEMP,
 	ERROR_CLIPBOARD_OPEN,
-	ERROR_CLIPBOARD_PASTE
+	ERROR_CLIPBOARD_PASTE,
+	ERROR_IO_TEMPLATE_FILE,
+	ERROR_IO_OUT_FILE
 };
 
 inline std::string ErrorString(Error err)
@@ -42,22 +46,34 @@ inline std::string ErrorString(Error err)
 		return "ERROR_OK";
 		break;
 	case ERROR_LATEX_PARSE:
-		return "ERROR_LATEX_PARSE";
+		return "LaTeX error";
 		break;
 	case ERROR_DVIPNG:
-		return "ERROR_DVIPNG";
+		return "dvipng error";
+		break;
+	case ERROR_CREATE_TEMP:
+		return "failed to create temp folder";
+		break;
+	case ERROR_CREATE_LOG:
+		return "failed to create log folder";
 		break;
 	case ERROR_REMOVE_TEMP:
-		return "ERROR_REMOVE_TEMP";
+		return "failed to remove temp folder";
 		break;
 	case ERROR_CLIPBOARD_OPEN:
-		return "ERROR_CLIPBOARD_OPEN";
+		return "failed to open clipboard";
 		break;
 	case ERROR_CLIPBOARD_PASTE:
-		return "ERROR_CLIPBOARD_PASTE";
+		return "failed to paste to clipboard";
+		break;
+	case ERROR_IO_TEMPLATE_FILE:
+		return "failed to open template file";
+		break;
+	case ERROR_IO_OUT_FILE:
+		return "failed to open out file";
 		break;
 	default:
-		return "Unknown error";
+		return "unknown error";
 		break;
 	}
 }
@@ -68,7 +84,7 @@ std::string Utf16ToUtf8(const std::wstring& str);
 DWORD ExecuteCommand(const std::string& command, bool showConsole = false);
 
 std::string MakeFullPath(const std::string& folder, const std::string& filename, const std::string& ext);
-void MakeFileFromTemplate(const std::wstring& templatePath, const std::wstring& outPath, const std::wstring& pattern, const std::wstring& replacement);
+Error MakeFileFromTemplate(const std::wstring& templatePath, const std::wstring& outPath, const std::wstring& pattern, const std::wstring& replacement);
 
 bool RemoveDirectoryRecursive(const std::string& dirPath);
 

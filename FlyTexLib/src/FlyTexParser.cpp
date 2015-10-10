@@ -69,7 +69,7 @@ std::string MakeFullPath(const std::string& folder, const std::string& filename,
 	return Utf16ToUtf8(path);
 }
 
-void MakeFileFromTemplate(const std::string& templatePath, const std::string& outPath, const std::string& pattern, const std::string& replacement)
+Error MakeFileFromTemplate(const std::string& templatePath, const std::string& outPath, const std::string& pattern, const std::string& replacement)
 {
 	std::ifstream templateFile;
 	std::ofstream outFile;
@@ -77,8 +77,10 @@ void MakeFileFromTemplate(const std::string& templatePath, const std::string& ou
 	templateFile.open(Utf8ToUtf16(templatePath));
 	outFile.open(Utf8ToUtf16(outPath));
 
-	if(!templateFile.is_open() || !outFile.is_open())
-		throw std::runtime_error("Failed to open files");
+	if(!templateFile.is_open())
+		return ERROR_IO_TEMPLATE_FILE;
+	if(!outFile.is_open())
+		return ERROR_IO_OUT_FILE;
 
 	std::string dataUTF8((std::istreambuf_iterator<char>(templateFile)), std::istreambuf_iterator<char>());
 	std::wstring dataUTF16 = Utf8ToUtf16(dataUTF8);
@@ -96,6 +98,8 @@ void MakeFileFromTemplate(const std::string& templatePath, const std::string& ou
 
 	outFile.close();
 	templateFile.close();
+
+	return ERROR_OK;
 }
 
 bool RemoveDirectoryRecursive(const std::string& dirPath)
@@ -192,25 +196,62 @@ Error FlyTexParser::ParseToImage(const std::string& expression, const std::strin
 	std::string dvipngStdout = MakeFullPath(LOG_FOLDER, "dvipng_stdout", "log");
 	std::string latexStdout = MakeFullPath(LOG_FOLDER, "latex_stdout", "log");
 
-	CreateDirectory(TEXT(TMP_FOLDER), NULL);
-	CreateDirectory(TEXT(LOG_FOLDER), NULL);
+	class flytex_exception : std::exception
+	{
+	public:
+		flytex_exception(Error err) : err(err) {}
+		const char* what() const
+		{
+			return ErrorString(err).c_str();
+		}
+		Error get() const
+		{
+			return err;
+		}
 
-	MakeFileFromTemplate(templateFile, texFilePath, "%::", expression);
+	private:
+		Error err;
 
-	DWORD latexExitCode = ExecuteCommand(latexPath + ' ' + texFilePath + " -interaction=nonstopmode -halt-on-error -output-directory=" + TMP_FOLDER + " >" + latexStdout + " 2>" + latexStderr);
-
-	CopyFileW(Utf8ToUtf16(latexLogFrom).c_str(), Utf8ToUtf16(latexLogTo).c_str(), FALSE);
+	};
 
 	Error error = ERROR_OK;
-	if(latexExitCode != 0)
-		error = ERROR_LATEX_PARSE;
 
-	if(error == ERROR_OK)
+	try
 	{
+		if(CreateDirectory(TEXT(TMP_FOLDER), NULL) != TRUE)
+		{
+			if(GetLastError() != ERROR_ALREADY_EXISTS)
+				throw flytex_exception(ERROR_CREATE_TEMP);
+		}
+		if(CreateDirectory(TEXT(LOG_FOLDER), NULL) != TRUE)
+		{
+			if(GetLastError() != ERROR_ALREADY_EXISTS)
+				throw flytex_exception(ERROR_CREATE_LOG);
+		}
+
+		Error result = MakeFileFromTemplate(templateFile, texFilePath, "%::", expression);
+		if(result != ERROR_OK)
+		{
+			throw flytex_exception(result);
+		}
+
+		DWORD latexExitCode = ExecuteCommand(latexPath + ' ' + texFilePath + " -interaction=nonstopmode -halt-on-error -output-directory=" + TMP_FOLDER + " >" + latexStdout + " 2>" + latexStderr);
+
+		CopyFileW(Utf8ToUtf16(latexLogFrom).c_str(), Utf8ToUtf16(latexLogTo).c_str(), FALSE);
+
+		if(latexExitCode != 0)
+		{
+			throw flytex_exception(ERROR_LATEX_PARSE);
+		}
+
 		DWORD dvipngExitCode = ExecuteCommand(dvipngPath + " -D " + std::to_string(resolution) + " -o " + imageFile + " -bg " + backgroundColor + " -fg " + foregroundColor + ' ' + dviFilePath + " >" + dvipngStdout + " 2>" + dvipngStderr);
 
 		if(dvipngExitCode != 0)
-			error = ERROR_DVIPNG;
+			throw flytex_exception(ERROR_DVIPNG);
+	}
+	catch(const flytex_exception& ex)
+	{
+		error = ex.get();
 	}
 
 	if(deleteTemp)
