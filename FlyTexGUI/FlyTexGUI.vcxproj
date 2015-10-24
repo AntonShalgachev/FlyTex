@@ -89,6 +89,14 @@
   <ItemGroup>
     <ResourceCompile Include="res\Resource.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\..\FlyTexTest\logo3.png" />
+    <Image Include="logo.ico" />
+    <Image Include="logo.png" />
+    <Image Include="res\icon1.ico" />
+    <Image Include="res\logo.ico" />
+    <Image Include="res\logo.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

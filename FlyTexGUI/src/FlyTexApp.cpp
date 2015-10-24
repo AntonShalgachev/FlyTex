@@ -195,6 +195,9 @@ void FlyTexApp::SaveSettings()
 {
 	std::ofstream f(FLYTEX_SETTINGS_FILE);
 
+	if(!f.is_open())
+		throw std::runtime_error("Couldn't open cfg file dor writing");
+
 	f << settings.background << std::endl;
 	f << settings.foreground << std::endl;
 	f << settings.resolution << std::endl;
@@ -265,6 +268,12 @@ INT_PTR CALLBACK FlyTexApp::DlgProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LP
 	{
 		FlyTexApp* instance = reinterpret_cast<FlyTexApp*>(lParam);
 		procMap[hWnd] = instance;
+
+		HICON hIcon = (HICON)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_FLYTEX_ICON), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE);
+		if(hIcon)
+		{
+			SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		}
 
 		return TRUE;
 	}
@@ -489,7 +498,8 @@ INT_PTR CALLBACK FlyTexApp::SettingsProc(HWND hWnd, UINT msg, WPARAM wParam, LPA
 				ofn.lpstrFile = path;
 				ofn.lpstrFilter = TEXT("LaTeX Files (.tex)\0*.tex\0All Files\0*.*\0");
 				ofn.nMaxFile = maxPathLength;
-				ofn.Flags = OFN_EXPLORER;
+				ofn.Flags = OFN_EXPLORER | OFN_NOCHANGEDIR;
+				auto ofn_c = ofn;
 				GetOpenFileName(&ofn);
 				SetWindowText(hTemplate, path);
 
